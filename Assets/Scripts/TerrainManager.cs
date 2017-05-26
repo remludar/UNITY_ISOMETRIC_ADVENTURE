@@ -19,7 +19,5 @@ public static class TerrainManager
         GameObject terrainGO = new GameObject("Terrain");
         terrainGO.transform.position = new Vector3(0, 0, 0);
         terrainGO.AddComponent<Terrain>();
-
-
     }
 }

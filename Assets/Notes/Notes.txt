@@ -8,8 +8,11 @@ Goals:
 [x] Basic flat-shaded plane with alternating diagonals
 [x] Add height map with random noise
 [x] Basic Perlin Noise for better looking terrain
+[x] Basic chunking
 
-[] Basic chunking
+[] Simple character just for reference (no real physics)
+	[] Player Camera
+	[] Simple WASD Movement
 [] Basic chunk loading and saving
 [] Multi-threading for chunk stuff
 [] Infinite terrain
@@ -17,7 +20,6 @@ Goals:
 	[] Each biome has different noise stuff
 	[] biomes need to cross chunks agnostically
 	[] biomes need to blend organically where they meet
-[] Simple character just for reference (no real physics)
 [] Simple destructable trees
 [] Physics
 [] Water

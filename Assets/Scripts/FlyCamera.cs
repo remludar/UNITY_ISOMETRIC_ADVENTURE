@@ -14,7 +14,7 @@ public class FlyCamera : MonoBehaviour
     void Start()
     {
         moveSpeed = 0.5f;
-        lookAtSpeed = 0.1f;
+        lookAtSpeed = 1.0f;
         yRot = 40.0f;
         xRot = 0.0f;
         transform = gameObject.transform;
@@ -22,7 +22,8 @@ public class FlyCamera : MonoBehaviour
 
     void Update()
     {
-        if (GameManager.instance.gameState == GameManager.GameState.FLY_CAM)
+        if (GameManager.instance.gameState == GameManager.GameState.FLY_CAM &&
+            InputManager.isRightMouse)
         {
             var mouseDelta = InputManager.mouseDelta;
             yRot += mouseDelta.x;
