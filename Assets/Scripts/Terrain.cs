@@ -4,25 +4,11 @@ using System.Collections.Generic;
 
 public class Terrain : MonoBehaviour
 {
-    public static Dictionary<Vector2, float> heightMap = new Dictionary<Vector2, float>();
     List<Chunk> chunks = new List<Chunk>();
 
     void Start()
     {
-        _GenerateHeightMap();
-        int startX = -TerrainManager.CHUNK_SIZE;
-        int startZ = -TerrainManager.CHUNK_SIZE;
-        for (int x = startX; x < TerrainManager.WORLD_SIZE - TerrainManager.CHUNK_SIZE; x+= TerrainManager.CHUNK_SIZE)
-        {
-            for (int z = startZ; z < TerrainManager.WORLD_SIZE - TerrainManager.CHUNK_SIZE; z+= TerrainManager.CHUNK_SIZE)
-            {
-                var position = new Vector3(x, 0, z);
-                var go = new GameObject(position.ToString());
-                go.transform.position = position;
-                go.transform.SetParent(gameObject.transform);
-                chunks.Add(new Chunk(go));
-            }
-        }
+        _NextChunkInSpiral();
     }
 
     void Update()
@@ -30,35 +16,51 @@ public class Terrain : MonoBehaviour
         InputManager.ProcessInput();
     }
 
-    private void _GenerateHeightMap()
+    private Vector2 _NextChunkInSpiral()
     {
-        //Create Heightmap
-        var generator = new SimplexNoiseGenerator();
+        var taskExecutor = gameObject.AddComponent<TaskExecutor>();
 
-        int startX = -TerrainManager.CHUNK_SIZE;
-        int startZ = -TerrainManager.CHUNK_SIZE;
-        for (int x = startX; x < TerrainManager.WORLD_SIZE - TerrainManager.CHUNK_SIZE + 1; x++)
+        int x = 0, z = 0;
+        int dx = 0, dz = -1;
+
+        int chunkCount = (TerrainManager.WORLD_SIZE / TerrainManager.CHUNK_SIZE);
+        for (int i = 0; i < chunkCount * chunkCount; i++)
         {
-            for (int z = startZ; z < TerrainManager.WORLD_SIZE - TerrainManager.CHUNK_SIZE + 1; z++)
+
+            int p1 = -chunkCount / 2;
+            int p2 = chunkCount / 2;
+            
+
+            if ( ((-chunkCount / 2.0f < x) && (x <= chunkCount / 2.0f)) && 
+                 ((-chunkCount / 2.0f < z) && (z <= chunkCount / 2.0f)) )
             {
-                float noise = 0.0f;
-                int type = 1; 
-                //Mountains
-                if (type == 0)
+
+                var position = new Vector3(x * TerrainManager.CHUNK_SIZE, 0, z * TerrainManager.CHUNK_SIZE);
+                var go = new GameObject(position.ToString());
+                go.transform.position = position;
+                go.transform.SetParent(gameObject.transform);
+
+
+                taskExecutor.ScheduleTask(new Task(delegate
                 {
-                    noise = generator.coherentNoise(x, 0, z, 1, 100, 50f, 2, 0.9f);
-                    noise += generator.coherentNoise(x, 0, z, 2, 75, 50f, 2, 0.9f);
-                    noise += generator.coherentNoise(x, 0, z, 2, 10, 10f, 2, 0.9f);
-                }
-                //Rolling Hills
-                else if (type == 1)
-                {
-                    noise = generator.coherentNoise(x, 0, z, 2, 100, 50, 2, 0.9f);
-                }
-                heightMap.Add(new Vector2(x, z), noise);
+                    chunks.Add(new Chunk(go));
+                }));
 
             }
+            if ( (x == z) ||
+                ((x < 0) && (x == -z)) || 
+                ((x > 0) && (x == 1 - z)) )
+            {
+                int tmpDX = dx;
+                dx = -dz;
+                dz = tmpDX;
+            }
+            x = x + dx;
+            z = z + dz;
+
         }
-       
+
+            return new Vector2();
     }
+
 }

@@ -53,6 +53,7 @@
      <Compile Include="Assets\Scripts\Player.cs" />
      <Compile Include="Assets\Scripts\PlayerCamera.cs" />
      <Compile Include="Assets\Scripts\SimplexNoiseGenerator.cs" />
+     <Compile Include="Assets\Scripts\TaskExecutor.cs" />
      <Compile Include="Assets\Scripts\Terrain.cs" />
      <Compile Include="Assets\Scripts\TerrainManager.cs" />
      <None Include="Assets\Notes\Notes.txt" />

@@ -9,13 +9,13 @@ Goals:
 [x] Add height map with random noise
 [x] Basic Perlin Noise for better looking terrain
 [x] Basic chunking
-
-[] Simple character just for reference (no real physics)
-	[] Player Camera
-	[] Simple WASD Movement
-[] Basic chunk loading and saving
-[] Multi-threading for chunk stuff
+[x] Simple character just for reference (no real physics)
+	[x] Player Camera
+	[x] Simple WASD Movement
+[x] Multi-threading for chunk stuff
+[] Spawn in chunks in a player-out spiral type pattern.
 [] Infinite terrain
+[] Basic chunk saving and loading
 [] Figure out how to do biomes
 	[] Each biome has different noise stuff
 	[] biomes need to cross chunks agnostically
@@ -24,3 +24,8 @@ Goals:
 [] Physics
 [] Water
 [] Fun shit
+
+
+BugList:
+[] Camera fucks up while chunks are generating
+[] Normals are weird at some chunk borders

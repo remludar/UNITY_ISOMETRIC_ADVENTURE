@@ -3,8 +3,8 @@ using System.Collections;
 
 public static class TerrainManager
 {
-    public const int CHUNK_SIZE = 50;
-    public const int WORLD_SIZE = 3 * CHUNK_SIZE;
+    public const int CHUNK_SIZE = 32;
+    public const int WORLD_SIZE = 18 * CHUNK_SIZE;
     public const float QUAD_SIZE = 1.0f;
 
     static Terrain terrain;

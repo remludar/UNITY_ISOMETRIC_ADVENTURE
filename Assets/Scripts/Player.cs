@@ -9,17 +9,31 @@ public class Player : MonoBehaviour
     CharacterController cc;
     Camera playerCamera;
 
+    bool spawnSet = false;
+
     void Awake()
     {
         moveSpeed = 30.0f;
-        gravity = -5.0f;
+        gravity = 0.0f;
         cc = gameObject.AddComponent<CharacterController>();
         cc.slopeLimit = 90;
         playerCamera = gameObject.GetComponentInChildren<Camera>();
+        transform.position = new Vector3(TerrainManager.CHUNK_SIZE / 2, 200.0f, TerrainManager.CHUNK_SIZE / 2);
+
+    }
+
+    void Start()
+    {
+       
+
+        
     }
 
     void Update()
     {
+        if (!spawnSet) _SetSpawn();
+
+
         if (GameManager.instance.gameState == GameManager.GameState.PLAYER_CAM)
         {
             playerCamera.enabled = true;
@@ -60,5 +74,23 @@ public class Player : MonoBehaviour
         moveDirection.y += gravity;
         cc.Move(moveDirection * moveSpeed * Time.deltaTime);
 
+    }
+
+    private void _SetSpawn()
+    {
+        {
+            //see if there's anything below, if yes, enable gravity and go 10 units above, if no wait
+            bool safeToSpawn = false;
+            RaycastHit hit;
+            var ray = new Ray(transform.position, Vector3.down);
+            safeToSpawn = Physics.Raycast(new Vector3(0, 30, 0), Vector3.down, out hit);
+            if (safeToSpawn)
+            {
+                float playerSpawnY = hit.collider.transform.position.y + 10;
+                transform.position = new Vector3(transform.position.x, playerSpawnY, transform.position.z);
+                gravity = -5.0f;
+                spawnSet = true;
+            }
+        }
     }
 }
