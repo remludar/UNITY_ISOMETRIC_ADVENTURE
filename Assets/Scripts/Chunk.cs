@@ -6,6 +6,7 @@ using System;
 public class Chunk
 {
     public bool needsUpdate;
+    public bool isEnabled;
 
     List<Vector3> verts = new List<Vector3>();
     List<int> tris = new List<int>();
@@ -22,30 +23,31 @@ public class Chunk
     {
         type = 1;
         needsUpdate = false;
-
+        isEnabled = true;
         this.gameObject = gameObject;
-        
         
         meshCol = gameObject.AddComponent<MeshCollider>();
         meshFilter = gameObject.AddComponent<MeshFilter>();
         meshRenderer = gameObject.AddComponent<MeshRenderer>();
         meshRenderer.material = Resources.Load<Material>("Materials/Default");
 
+        
+    }
+
+    public void Generate()
+    {
         _GenerateHeightMap();
         _GenerateMesh();
     }
 
-    public void Update()
+    public void Load()
     {
-        _ClearMesh();
-        _GenerateHeightMap();
-        _GenerateMesh();
+
     }
 
-    public void ChangeMaterial(string material)
+    public void Unload()
     {
-        string mat = "Materials/" + material;
-        meshRenderer.material = Resources.Load<Material>(mat);
+
     }
 
     public void DeleteChunk()
@@ -159,12 +161,5 @@ public class Chunk
         meshCol.sharedMesh = mesh;
         mesh.uv = uvs.ToArray();
         mesh.RecalculateNormals();
-    }
-    private void _ClearMesh()
-    {
-        verts.Clear();
-        tris.Clear();
-        uvs.Clear();
-        heightMap.Clear();
     }
 }

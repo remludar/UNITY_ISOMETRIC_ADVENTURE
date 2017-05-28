@@ -22,19 +22,8 @@ public static class TerrainManager
 
     public static void UpdateTerrain()
     {
-        //See if we need new chunks and generate them
         var playerGO = GameObject.FindGameObjectWithTag("Player");
-        terrain.GenerateMissingChunks(playerGO.transform.position);
+        terrain.Update(playerGO.transform.position);
 
-        //See if any of the chunks need to be updated
-        foreach (KeyValuePair<Vector3, Chunk> kvp in terrain.chunkDict)
-        {
-            var chunk = kvp.Value;
-            if (chunk.needsUpdate)
-            {
-                //do stuff
-                chunk.needsUpdate = false;
-            }
-        }
     }
 }
