@@ -48,6 +48,11 @@ public class Chunk
         meshRenderer.material = Resources.Load<Material>(mat);
     }
 
+    public void DeleteChunk()
+    {
+        GameObject.Destroy(gameObject);
+    }
+
     private void _GenerateHeightMap()
     {
         //Create Heightmap

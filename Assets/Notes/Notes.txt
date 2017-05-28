@@ -15,6 +15,7 @@ Goals:
 [x] Multi-threading for chunk stuff
 [x] Spawn in chunks in a player-out spiral type pattern.
 [x] Infinite terrain
+[x] Basic chunk unloading based on render distance
 [] Basic chunk saving and loading
 [] Figure out how to do biomes
 	[] Each biome has different noise stuff
@@ -27,5 +28,5 @@ Goals:
 
 
 BugList:
-[] Camera fucks up while chunks are generating
+[x] Camera fucks up while chunks are generating
 [] Normals are weird at some chunk borders

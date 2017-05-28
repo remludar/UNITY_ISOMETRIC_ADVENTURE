@@ -16,6 +16,7 @@ public static class InputManager
 
     public static Vector2 mouseDelta;
     public static Vector2 mouseScrollDelta;
+    public static float mouseX;
 
     public static void ProcessInput()
     {
@@ -30,8 +31,11 @@ public static class InputManager
         isEsc = Input.GetKey(KeyCode.Escape);
         isRightMouse = Input.GetMouseButton(1);
 
+
+
         mouseDelta = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
         mouseScrollDelta = Input.mouseScrollDelta;
+        mouseX = Input.GetAxis("Mouse X");
 
 
         if (is1)

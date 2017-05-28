@@ -24,8 +24,7 @@ public static class TerrainManager
     {
         //See if we need new chunks and generate them
         var playerGO = GameObject.FindGameObjectWithTag("Player");
-        var playerPos = new Vector2(playerGO.transform.position.x, playerGO.transform.position.z);
-        terrain.GenerateMissingChunks(playerPos);
+        terrain.GenerateMissingChunks(playerGO.transform.position);
 
         //See if any of the chunks need to be updated
         foreach (KeyValuePair<Vector3, Chunk> kvp in terrain.chunkDict)

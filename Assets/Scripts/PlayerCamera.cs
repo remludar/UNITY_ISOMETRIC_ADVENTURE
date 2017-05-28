@@ -25,10 +25,8 @@ public class PlayerCamera : MonoBehaviour
             //Rotate Camera
             if (InputManager.isRightMouse)
             {
-                yRot = InputManager.mouseDelta.x;
+                transform.RotateAround(gameObject.transform.parent.position, Vector3.up, InputManager.mouseX * rotationSpeed * Time.deltaTime);
             }
-            transform.Translate(new Vector3(-yRot, 0, 0) * rotationSpeed * Time.deltaTime);
-            yRot = 0;
 
             //Zoom Camera
             var scrollDelta = InputManager.mouseScrollDelta.y;
@@ -39,17 +37,8 @@ public class PlayerCamera : MonoBehaviour
                 transform.position += zoomVector * scrollDelta * zoomSpeed * Time.deltaTime;
             if (zoomVector.magnitude < 100 && scrollDelta < 0)
                 transform.position += zoomVector * scrollDelta * zoomSpeed * Time.deltaTime;
-
-
-            
-           
-
         }
         
     }
 
-    void LateUpdate()
-    {
-        transform.LookAt(gameObject.transform.parent); 
-    }
 }

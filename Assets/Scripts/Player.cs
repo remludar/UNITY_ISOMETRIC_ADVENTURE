@@ -13,7 +13,7 @@ public class Player : MonoBehaviour
 
     void Awake()
     {
-        moveSpeed = 30.0f;
+        moveSpeed = 60.0f;
         gravity = 0.0f;
         cc = gameObject.AddComponent<CharacterController>();
         cc.slopeLimit = 90;
