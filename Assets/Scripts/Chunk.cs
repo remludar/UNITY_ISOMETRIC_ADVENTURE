@@ -35,6 +35,18 @@ public class Chunk
         _GenerateMesh();
     }
 
+    public void Update()
+    {
+        _ClearMesh();
+        _GenerateHeightMap();
+        _GenerateMesh();
+    }
+
+    public void ChangeMaterial(string material)
+    {
+        string mat = "Materials/" + material;
+        meshRenderer.material = Resources.Load<Material>(mat);
+    }
 
     private void _GenerateHeightMap()
     {
@@ -78,8 +90,6 @@ public class Chunk
             }
         }
     }
-
-
     private void _GenerateMesh()
     {
         int numTris = 0;
@@ -145,5 +155,11 @@ public class Chunk
         mesh.uv = uvs.ToArray();
         mesh.RecalculateNormals();
     }
-
+    private void _ClearMesh()
+    {
+        verts.Clear();
+        tris.Clear();
+        uvs.Clear();
+        heightMap.Clear();
+    }
 }

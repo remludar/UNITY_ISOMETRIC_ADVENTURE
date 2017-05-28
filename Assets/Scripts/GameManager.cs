@@ -19,4 +19,10 @@ public class GameManager : MonoBehaviour
         TerrainManager.Init();
     }
 
+    void Update()
+    {
+        InputManager.ProcessInput();
+        TerrainManager.UpdateTerrain();
+    }
+
 } 

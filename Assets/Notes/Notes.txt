@@ -13,8 +13,8 @@ Goals:
 	[x] Player Camera
 	[x] Simple WASD Movement
 [x] Multi-threading for chunk stuff
-[] Spawn in chunks in a player-out spiral type pattern.
-[] Infinite terrain
+[x] Spawn in chunks in a player-out spiral type pattern.
+[x] Infinite terrain
 [] Basic chunk saving and loading
 [] Figure out how to do biomes
 	[] Each biome has different noise stuff
