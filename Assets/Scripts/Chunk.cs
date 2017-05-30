@@ -5,33 +5,37 @@ using System;
 
 public class Chunk
 {
+    string name;
+
     public bool needsUpdate;
-    public bool isEnabled;
+    public bool isLoaded;
 
     List<Vector3> verts = new List<Vector3>();
     List<int> tris = new List<int>();
     List<Vector2> uvs = new List<Vector2>();
 
     GameObject gameObject;
+    
     MeshFilter meshFilter;
     MeshRenderer meshRenderer;
     MeshCollider meshCol;
-    int type;
     Dictionary<Vector2, float> heightMap = new Dictionary<Vector2, float>();
+    int type;
+    float[,] noise;
 
     public Chunk(GameObject gameObject)
     {
+        name = gameObject.transform.position.ToString();
         type = 1;
-        needsUpdate = false;
-        isEnabled = true;
+        isLoaded = false;
         this.gameObject = gameObject;
-        
+        noise = new float[TerrainManager.CHUNK_SIZE + 1, TerrainManager.CHUNK_SIZE + 1];
+        isLoaded = true;
+
         meshCol = gameObject.AddComponent<MeshCollider>();
         meshFilter = gameObject.AddComponent<MeshFilter>();
         meshRenderer = gameObject.AddComponent<MeshRenderer>();
         meshRenderer.material = Resources.Load<Material>("Materials/Default");
-
-        
     }
 
     public void Generate()
@@ -40,17 +44,24 @@ public class Chunk
         _GenerateMesh();
     }
 
-    public void Load()
+    public void Reload(GameObject go)
     {
+        gameObject = go;
+        meshCol = gameObject.AddComponent<MeshCollider>();
+        meshFilter = gameObject.AddComponent<MeshFilter>();
+        meshRenderer = gameObject.AddComponent<MeshRenderer>();
+        meshRenderer.material = Resources.Load<Material>("Materials/Default");
 
+        //Render Mesh
+        Mesh mesh = meshFilter.mesh;
+        mesh.vertices = verts.ToArray();
+        mesh.triangles = tris.ToArray();
+        meshCol.sharedMesh = mesh;
+        mesh.uv = uvs.ToArray();
+        mesh.RecalculateNormals();
     }
 
     public void Unload()
-    {
-
-    }
-
-    public void DeleteChunk()
     {
         GameObject.Destroy(gameObject);
     }
@@ -62,37 +73,38 @@ public class Chunk
 
         int startX = (int)gameObject.transform.position.x;
         int startZ = (int)gameObject.transform.position.z;
-        for (int x = startX; x < startX + TerrainManager.CHUNK_SIZE + 1; x++)
+        
+        for (int x = startX, localX = 0; x < startX + TerrainManager.CHUNK_SIZE + 1; x++, localX++)
         {
-            for (int z = startZ; z < startZ + TerrainManager.CHUNK_SIZE + 1; z++)
+            for (int z = startZ, localZ = 0; z < startZ + TerrainManager.CHUNK_SIZE + 1; z++, localZ++)
             {
-                float noise = 0.0f;
+                noise[localX,localZ] = 0.0f;
 
                 //Rolling Hills
                 if (type == 1)
                 {
-                    noise = generator.coherentNoise(x, 0, z, 2, 100, 50, 2, 0.1f);
+                    noise[localX, localZ] = generator.coherentNoise(x, 0, z, 2, 100, 50, 2, 0.1f);
                 }
 
                 //Mountains
                 else if (type == 2)
                 {
-                    noise = generator.coherentNoise(x, 0, z, 1, 100, 50f, 2, 0.9f);
-                    noise += generator.coherentNoise(x, 0, z, 2, 75, 50f, 2, 0.9f);
-                    noise += generator.coherentNoise(x, 0, z, 2, 10, 10f, 2, 0.9f);
+                    noise[localX, localZ] = generator.coherentNoise(x, 0, z, 1, 100, 50f, 2, 0.9f);
+                    noise[localX, localZ] += generator.coherentNoise(x, 0, z, 2, 75, 50f, 2, 0.9f);
+                    noise[localX, localZ] += generator.coherentNoise(x, 0, z, 2, 10, 10f, 2, 0.9f);
                 }
                 else if (type == 3)
                 {
-                    noise = generator.coherentNoise(x, 0, z, 1, 25, 0.5f, 2, 0.9f);
+                    noise[localX, localZ] = generator.coherentNoise(x, 0, z, 1, 25, 0.5f, 2, 0.9f);
                 }
                 else
                 {
                     //Mostly Flat
-                    noise = generator.coherentNoise(x, 0, z);
+                    noise[localX, localZ] = generator.coherentNoise(x, 0, z);
                 }
 
 
-                heightMap.Add(new Vector2(x, z), noise);
+                heightMap.Add(new Vector2(x, z), noise[localX, localZ]);
 
             }
         }
@@ -101,7 +113,6 @@ public class Chunk
     {
         int numTris = 0;
         bool flipped = false;
-
         //Create verts and tris
         for (int x = 0; x < TerrainManager.CHUNK_SIZE; x++)
         {
@@ -153,7 +164,6 @@ public class Chunk
                 flipped = !flipped;
             }
         }
-
         //Render Mesh
         Mesh mesh = meshFilter.mesh;
         mesh.vertices = verts.ToArray();
@@ -161,5 +171,7 @@ public class Chunk
         meshCol.sharedMesh = mesh;
         mesh.uv = uvs.ToArray();
         mesh.RecalculateNormals();
+        isLoaded = true;
+        
     }
 }

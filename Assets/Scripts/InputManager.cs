@@ -13,6 +13,7 @@ public static class InputManager
     public static bool is2;
     public static bool isRightMouse;
     public static bool isEsc;
+    public static bool isSpace;
 
     public static Vector2 mouseDelta;
     public static Vector2 mouseScrollDelta;
@@ -29,6 +30,7 @@ public static class InputManager
         is1 = Input.GetKey(KeyCode.Alpha1);
         is2 = Input.GetKey(KeyCode.Alpha2);
         isEsc = Input.GetKey(KeyCode.Escape);
+        isSpace = Input.GetKeyDown(KeyCode.Space);
         isRightMouse = Input.GetMouseButton(1);
 
 

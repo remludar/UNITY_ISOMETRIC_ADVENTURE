@@ -23,11 +23,14 @@ public class TaskExecutor : MonoBehaviour
 
     public void ScheduleTask(Task newTask)
     {
-        int chunkCount = (TerrainManager.RENDER_DISTANCE / TerrainManager.CHUNK_SIZE) * (TerrainManager.RENDER_DISTANCE / TerrainManager.CHUNK_SIZE);
-        lock (_queueLock)
-        {
-            if (TaskQueue.Count < chunkCount)
-                TaskQueue.Enqueue(newTask);
-        }
+        //int chunkCount = (TerrainManager.RENDER_DISTANCE / TerrainManager.CHUNK_SIZE) * (TerrainManager.RENDER_DISTANCE / TerrainManager.CHUNK_SIZE);
+        //lock (_queueLock)
+        //{
+        //    if (TaskQueue.Count < chunkCount)
+        //        TaskQueue.Enqueue(newTask);
+        //}
+
+        TaskQueue.Enqueue(newTask);
+
     }
 }
