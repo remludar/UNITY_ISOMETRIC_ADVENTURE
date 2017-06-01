@@ -16,7 +16,7 @@ Goals:
 [x] Spawn in chunks in a player-out spiral type pattern.
 [x] Infinite terrain
 [x] Basic chunk unloading based on render distance
-[] Basic chunk saving and loading
+[x] Basic chunk saving and loading
 [] Figure out how to do biomes
 	[] Each biome has different noise stuff
 	[] biomes need to cross chunks agnostically

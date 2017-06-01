@@ -40,9 +40,6 @@ public static class InputManager
         mouseX = Input.GetAxis("Mouse X");
 
 
-        if (is1)
-            GameManager.instance.gameState = GameManager.GameState.FLY_CAM;
-        if (is2)
-            GameManager.instance.gameState = GameManager.GameState.PLAYER_CAM;
+      
     }
 }

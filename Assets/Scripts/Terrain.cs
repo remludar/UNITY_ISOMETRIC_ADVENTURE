@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+﻿ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System;
@@ -6,98 +6,63 @@ using System.Linq;
 
 public class Terrain
 {
-    public Dictionary<Vector3, Chunk> chunkDict = new Dictionary<Vector3, Chunk>();
-    public Dictionary<Vector3, Chunk> loadedChunks = new Dictionary<Vector3, Chunk>();
+    public const int CHUNK_SIZE = 32;
+    public const int WORLD_DIMENSION = 11;
+
+    Dictionary<Vector3, Chunk> chunkDict = new Dictionary<Vector3, Chunk>();
+
+    public static List<Chunk> chunksToRender = new List<Chunk>();
+    public static object chunksToListLock = new object();
 
     GameObject gameObject;
-    TaskExecutor taskExecutor;
+    Player player;
 
-    public Terrain(GameObject go)
+    public void Generate()
     {
-        gameObject = go;
-        gameObject.transform.position = new Vector3(0, 0, 0);
-        taskExecutor = gameObject.AddComponent<TaskExecutor>();
-        GenerateStartingChunks();
-    }
+        gameObject = new GameObject("Terrain");
+        player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
 
-    public void GenerateStartingChunks()
-    {
-        int playerX = 0;
-        int playerZ = 0;
-
-        int x = 0;
-        int z = 0;
-        int dx = 0;
-        int dz = -1;
-
-        int chunkCount =  (TerrainManager.RENDER_DISTANCE / TerrainManager.CHUNK_SIZE);
-
-        for (int i = 0; i < chunkCount * chunkCount; i++)
+        int zeroIndexHalfEdge = ((WORLD_DIMENSION - 3) / 2) + 1;
+        for (int x = -zeroIndexHalfEdge; x < zeroIndexHalfEdge + 1; x++)
         {
-            //if chunk doesn't exist, create it
-            Chunk thisChunk;
-            var position = new Vector3((playerX + x) * TerrainManager.CHUNK_SIZE, 0, (playerZ + z) * TerrainManager.CHUNK_SIZE);
-
-            if (!chunkDict.TryGetValue(position, out thisChunk))
+            for (int z = -zeroIndexHalfEdge; z < zeroIndexHalfEdge + 1; z++)
             {
-                var go = new GameObject(position.ToString());
-                go.transform.position = position;
-                go.transform.SetParent(gameObject.transform);
-
-                thisChunk = new Chunk(go);
-                chunkDict.Add(position, thisChunk);
-                loadedChunks.Add(position, thisChunk);
-
-                taskExecutor.ScheduleTask(new Task(delegate
-                {
-                    thisChunk.Generate();
-                }));
+                var chunkPosition = new Vector3(x * CHUNK_SIZE, 0, z * CHUNK_SIZE);
+                var go = new GameObject(chunkPosition.ToString());
+                go.transform.position = chunkPosition;
+                go.transform.parent = gameObject.transform;
+                var chunk = new Chunk(go);
+                chunkDict.Add(chunkPosition, chunk);
             }
-
-            if ((x == z) ||
-                ((x < 0) && (x == -z)) ||
-                ((x > 0) && (x == 1 - z)))
-            {
-                int tmpDX = dx;
-                dx = -dz;
-                dz = tmpDX;
-            }
-            x = x + dx;
-            z = z + dz;
-
         }
     }
 
-    public void Update(Vector3 playerPos)
+    
+
+    public void Update()
     {
-        _GenerateMissingChunks(playerPos);
-        _UnloadDistantChunks(playerPos);
-
-        //Debug
-        if (InputManager.isSpace)
-        {
-            Debug.Log("Chunks: " + loadedChunks.Count + "/" + chunkDict.Count);
-        }
-        //Debug
-
+        _GenerateMissingChunks(player.GetPosition());
+        _RenderChunks();
+        _RemoveDistantChunks(player.GetPosition());
+        
     }
 
     private void _GenerateMissingChunks(Vector3 playerPos)
     {
-        int playerX = (int)playerPos.x / TerrainManager.CHUNK_SIZE;
-        int playerZ = (int)playerPos.z / TerrainManager.CHUNK_SIZE;
+        int playerX = (int)playerPos.x / Terrain.CHUNK_SIZE;
+        int playerZ = (int)playerPos.z / Terrain.CHUNK_SIZE;
 
         if (playerPos.x < 0)
         {
-            playerX = (int)(playerPos.x - TerrainManager.CHUNK_SIZE) / TerrainManager.CHUNK_SIZE;
+            playerX = (int)(playerPos.x - Terrain.CHUNK_SIZE) / Terrain.CHUNK_SIZE;
         }
 
         if (playerPos.z < 0)
         {
-            playerZ = (int)(playerPos.z - TerrainManager.CHUNK_SIZE) / TerrainManager.CHUNK_SIZE;
+            playerZ = (int)(playerPos.z - Terrain.CHUNK_SIZE) / Terrain.CHUNK_SIZE;
         }
 
-        int edgeLength = (TerrainManager.RENDER_DISTANCE / TerrainManager.CHUNK_SIZE);
+        int edgeLength = Terrain.WORLD_DIMENSION;
         int zeroIndexHalfEdge = ((edgeLength - 3) / 2) + 1;
 
         int x = zeroIndexHalfEdge;
@@ -109,43 +74,21 @@ public class Terrain
         int edges = edgeLength - 2;
         int chunkCount = (edges * 4) + corners;
 
-        for (int i = 0; i < chunkCount; i++) 
+        for (int i = 0; i < chunkCount; i++)
         {
             //Prepare to store next chunk if it already exists
             Chunk thisChunk;
-            var position = new Vector3((playerX + x) * TerrainManager.CHUNK_SIZE, 0, (playerZ + z) * TerrainManager.CHUNK_SIZE);
+            var topRightPosition = new Vector3((playerX + x) * Terrain.CHUNK_SIZE, 0, (playerZ + z) * Terrain.CHUNK_SIZE);
 
             //if chunk doesn't exist, create it
-            if (!chunkDict.TryGetValue(position, out thisChunk))
+            if (!chunkDict.TryGetValue(topRightPosition, out thisChunk))
             {
-                var go = new GameObject(position.ToString());
-                go.transform.position = position;
+                var go = new GameObject(topRightPosition.ToString());
+                go.transform.position = topRightPosition;
                 go.transform.SetParent(gameObject.transform);
 
                 thisChunk = new Chunk(go);
-                chunkDict.Add(position, thisChunk);
-                loadedChunks.Add(position, thisChunk);
-
-                taskExecutor.ScheduleTask(new Task(delegate
-                {
-                    thisChunk.Generate();
-                }));
-            }
-            else
-            {
-                if (!thisChunk.isLoaded)
-                {
-                    var go = new GameObject(position.ToString());
-                    go.transform.position = position;
-                    go.transform.SetParent(gameObject.transform);
-                    loadedChunks.Add(position, thisChunk);
-                    thisChunk.isLoaded = true;
-
-                    taskExecutor.ScheduleTask(new Task(delegate
-                    {
-                        thisChunk.Reload(go);
-                    }));
-                }
+                chunkDict.Add(topRightPosition, thisChunk);
             }
 
             //Shift variables to next chunk
@@ -164,162 +107,50 @@ public class Terrain
         }
     }
 
-    #region old and innefficient _GenerateMissingChunks
-    //private void _GenerateMissingChunks(Vector3 playerPos)
-    //{
-    //    int playerX = (int)playerPos.x / TerrainManager.CHUNK_SIZE;
-    //    int playerZ = (int)playerPos.z / TerrainManager.CHUNK_SIZE;
-
-    //    if (playerPos.x < 0)
-    //    {
-    //        playerX = (int)(playerPos.x - TerrainManager.CHUNK_SIZE) / TerrainManager.CHUNK_SIZE;
-    //    }
-
-    //    if (playerPos.z < 0)
-    //    {
-    //        playerZ = (int)(playerPos.z - TerrainManager.CHUNK_SIZE) / TerrainManager.CHUNK_SIZE;
-    //    }
-
-    //    int x = 0;
-    //    int z = 0;
-    //    int dx = 0;
-    //    int dz = -1;
-
-    //    int chunkCount = (TerrainManager.RENDER_DISTANCE / TerrainManager.CHUNK_SIZE);
-
-    //    for (int i = 0; i < chunkCount * chunkCount; i++) //TODO: optimize this to only spiral around the outter edge of the matrix
-    //    {
-    //        //Prepare to store next chunk if it already exists
-    //        Chunk thisChunk;
-    //        var position = new Vector3((playerX + x) * TerrainManager.CHUNK_SIZE, 0, (playerZ + z) * TerrainManager.CHUNK_SIZE);
-
-    //        //if chunk doesn't exist, create it
-    //        if (!chunkDict.TryGetValue(position, out thisChunk))
-    //        {
-    //            var go = new GameObject(position.ToString());
-    //            go.transform.position = position;
-    //            go.transform.SetParent(gameObject.transform);
-
-    //            thisChunk = new Chunk(go);
-    //            chunkDict.Add(position, thisChunk);
-    //            loadedChunks.Add(position, thisChunk);
-
-    //            taskExecutor.ScheduleTask(new Task(delegate
-    //            {
-    //                thisChunk.Generate();
-    //            }));
-    //        }
-    //        else
-    //        {
-    //            if (!thisChunk.isLoaded)
-    //            {
-    //                var go = new GameObject(position.ToString());
-    //                go.transform.position = position;
-    //                go.transform.SetParent(gameObject.transform);
-    //                loadedChunks.Add(position, thisChunk);
-    //                thisChunk.isLoaded = true;
-
-    //                taskExecutor.ScheduleTask(new Task(delegate
-    //                {
-    //                    thisChunk.Reload(go);
-    //                }));
-    //            }
-    //        }
-
-    //        //Shift variables to next chunk
-    //        if ((x == z) ||
-    //            ((x < 0) && (x == -z)) ||
-    //            ((x > 0) && (x == 1 - z)))
-    //        {
-    //            int tmpDX = dx;
-    //            dx = -dz;
-    //            dz = tmpDX;
-    //        }
-
-    //        x = x + dx;
-    //        z = z + dz;
-
-    //    }
-    //}
-    #endregion
-
-    private void _UnloadDistantChunks(Vector3 playerPos)
+    private void _RenderChunks()
     {
-        //Get all chunks from existsDict
-        #region foreach version
-        //foreach (KeyValuePair<Vector3, Chunk> kvp in chunkDict)
-        //{
-        //    #region old code
-        //    //var location = kvp.Key;
+        lock (chunksToListLock)
+        {
+            int numberOfElementsToCopy = chunksToRender.Count;
+            Chunk[] chunksToRenderArray = new Chunk[numberOfElementsToCopy];
 
-        //    //int chunkCount = TerrainManager.RENDER_DISTANCE / TerrainManager.CHUNK_SIZE;
-        //    //int maxXZ = chunkCount - (chunkCount - ((int)chunkCount / 2));
-        //    //int threshold = (int)new Vector3(maxXZ, 0, maxXZ).magnitude;
+            for (int i = 0; i < numberOfElementsToCopy; i++)
+            {
+                if (chunksToRender[i] == null)
+                {
+                    Debug.Log("Somehow there's a null chunk in the chunksToRenderList");
+                    return;
+                }
+                chunksToRenderArray[i] = chunksToRender[i];
+            }
 
-        //    //int playerChunkPosX = (int)playerPos.x / TerrainManager.CHUNK_SIZE;
-        //    //if (playerPos.x < 0) playerChunkPosX -= 1;
-        //    //int playerChunkPosZ = (int)playerPos.z / TerrainManager.CHUNK_SIZE;
-        //    //if (playerPos.z < 0) playerChunkPosZ -= 1;
-        //    //var playerChunkPos = new Vector3(playerChunkPosX, 0, playerChunkPosZ);
+            for (int i = 0; i < numberOfElementsToCopy; i++)
+            {
+                chunksToRenderArray[i].Render();
+                chunksToRender.Remove(chunksToRenderArray[i]);
+            }
+        }
+        
+    }
 
-        //    //int locationChunkPosX = (int)location.x / TerrainManager.CHUNK_SIZE;
-        //    //int locationChunkPosZ = (int)location.z / TerrainManager.CHUNK_SIZE;
-        //    //var locationChunkPos = new Vector3(locationChunkPosX, 0, locationChunkPosZ);
-
-        //    //var differenceVector = (playerChunkPos - locationChunkPos);
-        //    //float magnitude = differenceVector.magnitude;
-        //    //int distance = (int)Mathf.Abs(magnitude);
-
-        //    //if (distance > threshold)
-        //    //{
-        //    //    kvp.Value.isLoaded = false;
-        //    //    kvp.Value.Unload();
-        //    //}
-        //    #endregion
-
-        //    var location = kvp.Key;
-
-        //    int playerChunkPosX = (int)playerPos.x / TerrainManager.CHUNK_SIZE;
-        //    if (playerPos.x < 0) playerChunkPosX -= 1;
-        //    int playerChunkPosZ = (int)playerPos.z / TerrainManager.CHUNK_SIZE;
-        //    if (playerPos.z < 0) playerChunkPosZ -= 1;
-        //    var playerChunkPos = new Vector3(playerChunkPosX, 0, playerChunkPosZ);
-
-        //    int maxDistance = (TerrainManager.RENDER_DISTANCE / TerrainManager.CHUNK_SIZE) / 2;
-
-        //    bool tooFarNorth = ((int)location.z / TerrainManager.CHUNK_SIZE) - playerChunkPosZ > maxDistance;
-        //    bool tooFarSouth = playerChunkPosZ - ((int)location.z / TerrainManager.CHUNK_SIZE) > maxDistance;
-        //    bool tooFarEast = ((int)location.x / TerrainManager.CHUNK_SIZE) - playerChunkPosX > maxDistance;
-        //    bool tooFarWest = playerChunkPosX - ((int)location.x / TerrainManager.CHUNK_SIZE) > maxDistance;
-
-        //    bool tooFar = tooFarNorth || tooFarSouth || tooFarEast || tooFarWest;
-
-        //    if (tooFar)
-        //    {
-        //        kvp.Value.isLoaded = false;
-        //        kvp.Value.Unload();
-        //    }
-        //}
-        #endregion
-
-        int playerChunkPosX = (int)playerPos.x / TerrainManager.CHUNK_SIZE;
+    private void _RemoveDistantChunks(Vector3 playerPos)
+    {
+        int playerChunkPosX = (int)playerPos.x / CHUNK_SIZE;
         if (playerPos.x < 0) playerChunkPosX -= 1;
-        int playerChunkPosZ = (int)playerPos.z / TerrainManager.CHUNK_SIZE;
+        int playerChunkPosZ = (int)playerPos.z / CHUNK_SIZE;
         if (playerPos.z < 0) playerChunkPosZ -= 1;
 
-        int maxDistance = (TerrainManager.RENDER_DISTANCE / TerrainManager.CHUNK_SIZE) ;
+        int maxDistance = ((WORLD_DIMENSION - 3) / 2) + 1; ;
 
         List<Vector3> chunkPositionsToRemove = new List<Vector3>();
 
-
-        foreach (Vector3 position in loadedChunks.Keys.Where(key => playerChunkPosX - (int)key.x / TerrainManager.CHUNK_SIZE > maxDistance ||
-                                                                 (int)key.x / TerrainManager.CHUNK_SIZE - playerChunkPosX > maxDistance ||
-                                                                 playerChunkPosZ - (int)key.z / TerrainManager.CHUNK_SIZE > maxDistance ||
-                                                                 (int)key.z / TerrainManager.CHUNK_SIZE - playerChunkPosZ > maxDistance).ToList())
-        { 
+        foreach (Vector3 position in chunkDict.Keys.Where(key => playerChunkPosX - (int)key.x / CHUNK_SIZE > maxDistance ||
+                                                                 (int)key.x / CHUNK_SIZE - playerChunkPosX > maxDistance ||
+                                                                 playerChunkPosZ - (int)key.z / CHUNK_SIZE > maxDistance ||
+                                                                 (int)key.z / CHUNK_SIZE - playerChunkPosZ > maxDistance).ToList())
+        {
             Chunk thisChunk;
-            loadedChunks.TryGetValue(position, out thisChunk);
-            thisChunk.isLoaded = false;
+            chunkDict.TryGetValue(position, out thisChunk);
             thisChunk.Unload();
 
             chunkPositionsToRemove.Add(position);
@@ -327,8 +158,7 @@ public class Terrain
 
         foreach (Vector3 position in chunkPositionsToRemove)
         {
-            loadedChunks.Remove(position);
+            chunkDict.Remove(position);
         }
-
     }
 }

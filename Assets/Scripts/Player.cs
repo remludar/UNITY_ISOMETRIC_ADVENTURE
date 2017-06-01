@@ -18,7 +18,7 @@ public class Player : MonoBehaviour
         cc = gameObject.AddComponent<CharacterController>();
         cc.slopeLimit = 90;
         playerCamera = gameObject.GetComponentInChildren<Camera>();
-        transform.position = new Vector3(TerrainManager.CHUNK_SIZE / 2, 200.0f, TerrainManager.CHUNK_SIZE / 2);
+        transform.position = new Vector3(Terrain.CHUNK_SIZE / 2, 200.0f, Terrain.CHUNK_SIZE / 2);
 
     }
 
@@ -32,17 +32,15 @@ public class Player : MonoBehaviour
     void Update()
     {
         if (!spawnSet) _SetSpawn();
+        playerCamera.enabled = true;
+        _Move();
 
+   
+    }
 
-        if (GameManager.instance.gameState == GameManager.GameState.PLAYER_CAM)
-        {
-            playerCamera.enabled = true;
-            _Move();
-        }
-        else
-        {
-            playerCamera.enabled = false;
-        }
+    public Vector3 GetPosition()
+    {
+        return transform.position;
     }
 
     private void _Move()

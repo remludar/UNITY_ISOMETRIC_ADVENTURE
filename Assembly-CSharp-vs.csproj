@@ -47,15 +47,12 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Scripts\Chunk.cs" />
-     <Compile Include="Assets\Scripts\FlyCamera.cs" />
      <Compile Include="Assets\Scripts\GameManager.cs" />
      <Compile Include="Assets\Scripts\InputManager.cs" />
      <Compile Include="Assets\Scripts\Player.cs" />
      <Compile Include="Assets\Scripts\PlayerCamera.cs" />
      <Compile Include="Assets\Scripts\SimplexNoiseGenerator.cs" />
-     <Compile Include="Assets\Scripts\TaskExecutor.cs" />
      <Compile Include="Assets\Scripts\Terrain.cs" />
-     <Compile Include="Assets\Scripts\TerrainManager.cs" />
      <None Include="Assets\Notes\Notes.txt" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
